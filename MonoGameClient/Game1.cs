@@ -7,6 +7,7 @@ using Microsoft.Xna.Framework.Input;
 using Sprites;
 using Microsoft.Xna.Framework.Audio;
 using CameraNS;
+using GameData;
 
 namespace MonoGameClient
 {
@@ -18,8 +19,11 @@ namespace MonoGameClient
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
 
+        //Server Variables
         HubConnection serverConnection;
         IHubProxy proxy;
+
+
         Vector2 worldCoords;
         SpriteFont messageFont;
         Texture2D backGround;
@@ -34,20 +38,14 @@ namespace MonoGameClient
             Content.RootDirectory = "Content";
         }
 
-        /// <summary>
-        /// Allows the game to perform any initialization it needs to before starting to run.
-        /// This is where it can query for any required services and load any non-graphic
-        /// related content.  Calling base.Initialize will enumerate through any components
-        /// and initialize them as well.
-        /// </summary>
+    
         protected override void Initialize()
         {
-            // TODO: Add your initialization logic here
-            serverConnection = new HubConnection("http://localhost:3566/");
+            serverConnection = new HubConnection("http://localhost:3566/"); //Port used
             serverConnection.StateChanged += ServerConnection_StateChanged;
-            proxy = serverConnection.CreateHubProxy("GameHub");
+            proxy = serverConnection.CreateHubProxy("GameHub"); // creates proxy to enable us to call methods from gamehub
             connectionMessage = string.Empty;
-            serverConnection.Start();
+            serverConnection.Start(); // starts server conection
             base.Initialize();
         }
 
@@ -60,12 +58,14 @@ namespace MonoGameClient
                     Connected = true;
                     startGame();
                     break;
+
                 case ConnectionState.Disconnected:
                     connectionMessage = "Disconnected.....";
                     if (State.OldState == ConnectionState.Connected)
                         connectionMessage = "Lost Connection....";
                     Connected = false;
                     break;
+
                 case ConnectionState.Connecting:
                     connectionMessage = "Connecting.....";
                     Connected = false;
@@ -75,21 +75,26 @@ namespace MonoGameClient
 
         private void startGame()
         {
-            Action<int, int> joined = cJoined;
-            proxy.On("joined", joined);
-            proxy.Invoke("join");
+            //gets called once connected (valid conection)
+
+            Action<int, int> joined = cJoined; // delegate pattern
+            proxy.On("joined", joined); // join message
+            proxy.Invoke("join"); // runs join comand above
                         
         }
 
         private void cJoined(int arg1, int arg2)
         {
-            worldCoords = new Vector2(arg1, arg2);
+            worldCoords = new Vector2(arg1, arg2); // sets to co-ords passed down
             // Setup Camera
+            //create world Rect, does clamping
+
             worldRect = new Rectangle(new Point(0, 0), worldCoords.ToPoint());
             new Camera(this, Vector2.Zero, worldCoords);
 
             Joined = true;
-            // Setup Player
+            // Setup Player / Delegate code 
+            //Load each texture assosiated with each movement
             new Player(this, new Texture2D[] {
                             Content.Load<Texture2D>(@"Textures\left"),
                             Content.Load<Texture2D>(@"Textures\right"),
@@ -99,12 +104,24 @@ namespace MonoGameClient
                         }, new SoundEffect[] { }, GraphicsDevice.Viewport.Bounds.Center.ToVector2(),
                         8, 0, 5.0f);
 
+            //invoke joinplayer method, expects 2 arguments
+            //Invokes joinplayer message, must have same signature as above
+            proxy.Invoke<PlayerData>("JoinPlayer",
+                new Position {X = GraphicsDevice.Viewport.Bounds.Center.X,
+                             Y = GraphicsDevice.Viewport.Bounds.Center.Y})
+                            .ContinueWith(
+                //starts new thread
+                            (p) => {
+                                if (p.Result == null)
+                                {
+                                    connectionMessage = "No PlayerData returned";
+                                }
+
+                            }); 
 
         }
 
-        /// <summary>
-        /// LoadContent will be called once per game and is the place to load
-        /// all of your content.
+      
         /// </summary>
         protected override void LoadContent()
         {
@@ -113,22 +130,15 @@ namespace MonoGameClient
             Services.AddService(spriteBatch);
             messageFont = Content.Load<SpriteFont>(@"Fonts\ScoreFont");
             backGround = Content.Load<Texture2D>(@"Textures\background");
-            // TODO: use this.Content to load your game content here
         }
 
-        /// <summary>
-        /// UnloadContent will be called once per game and is the place to unload
-        /// game-specific content.
-        /// </summary>
+      
         protected override void UnloadContent()
         {
-            // TODO: Unload any non ContentManager content here
+
         }
 
-        /// <summary>
-        /// Allows the game to run logic such as updating the world,
-        /// checking for collisions, gathering input, and playing audio.
-        /// </summary>
+    
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Update(GameTime gameTime)
         {
@@ -137,19 +147,16 @@ namespace MonoGameClient
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
 
-            // TODO: Add your update logic here
-
+         
             base.Update(gameTime);
         }
 
-        /// <summary>
-        /// This is called when the game should draw itself.
-        /// </summary>
+      
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Draw(GameTime gameTime)
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
-            if (Connected && Joined)
+            if (Connected && Joined) // ensure connected
             {
                 DrawPlay();
             }
@@ -160,7 +167,6 @@ namespace MonoGameClient
                                 new Vector2(20, 20), Color.White);
                 spriteBatch.End();
             }
-            // TODO: Add your drawing code here
 
             base.Draw(gameTime);
         }
@@ -168,7 +174,7 @@ namespace MonoGameClient
         private void DrawPlay()
         {
             spriteBatch.Begin(SpriteSortMode.Immediate, null, null, null, null, null, Camera.CurrentCameraTranslation);
-            spriteBatch.Draw(backGround, worldRect, Color.White);
+            spriteBatch.Draw(backGround, worldRect, Color.White); // draw background using co-ords
             spriteBatch.End();
         }
     }

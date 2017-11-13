@@ -18,11 +18,11 @@ namespace GameData
     {
         public string header = string.Empty;
         public string playerID;
-        public string imageName = string.Empty;
+        public string imageName = string.Empty; // could be the name of character
         public string GamerTag = string.Empty;
         public string PlayerName = string.Empty;
         public int XP;
-        public Position playerPosition;
+        public Position playerPosition = new Position { };
         public string Password;
 
         public PlayerData() { }
@@ -31,6 +31,7 @@ namespace GameData
             header = messageHeader;
             playerID = id;
             imageName = ImgName;
+            playerPosition = new Position { };
             playerPosition.X = x;
             playerPosition.Y = y;
             GamerTag = tag;
