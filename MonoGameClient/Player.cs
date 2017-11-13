@@ -90,5 +90,8 @@ namespace Sprites
             playerData.playerPosition =  new Position { X = (int)Position.X, Y = (int)Position.Y };
             
         }
+
+
+        //Public override draw
     }
 }
