@@ -3,6 +3,7 @@ using Microsoft.AspNet.SignalR.Client;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using System.Linq;
 
 using Sprites;
 using Microsoft.Xna.Framework.Audio;
@@ -113,8 +114,18 @@ namespace MonoGameClient
                 //starts new thread
                             (p) => {
                                 if (p.Result == null)
-                                {
                                     connectionMessage = "No PlayerData returned";
+                                else
+                                {
+                                    Player player;
+                                    player = (Player)Components.FirstOrDefault(p1 =>p1.GetType() == typeof(Player));
+                                    if (player != null)
+                                    {
+                                        player.playerData = p.Result;
+
+                                    }
+
+                                    //change the player draw method to display the name/id
                                 }
 
                             }); 
