@@ -140,6 +140,7 @@ namespace MonoGameClient
             spriteBatch = new SpriteBatch(GraphicsDevice);
             Services.AddService(spriteBatch);
             messageFont = Content.Load<SpriteFont>(@"Fonts\ScoreFont");
+            Services.AddService(Content.Load<SpriteFont>(@"Fonts\PlayerFont"));
             backGround = Content.Load<Texture2D>(@"Textures\background");
         }
 

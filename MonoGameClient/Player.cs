@@ -9,6 +9,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Audio;
 using GameData;
+using CameraNS;
 
 namespace Sprites
 {
@@ -93,5 +94,21 @@ namespace Sprites
 
 
         //Public override draw
+        public override void Draw(GameTime gameTime)
+        {
+            int imageWidth = BoundingRect.Width;
+            string playerTag = playerData.GamerTag;
+            SpriteFont font = Game.Services.GetService<SpriteFont>();
+            SpriteBatch sp = Game.Services.GetService<SpriteBatch>();
+            Vector2 fontSize = font.MeasureString(playerTag);
+            Vector2 textPos = BoundingRect.Location.ToVector2() - new Vector2(imageWidth - fontSize.X / 2, fontSize.Y);
+            sp.Begin(SpriteSortMode.Immediate, null, null, null, null, null, Camera.CurrentCameraTranslation);
+            sp.DrawString(font, playerTag, textPos, Color.White);
+            sp.End();
+            
+
+
+            base.Draw(gameTime);
+        }
     }
 }
