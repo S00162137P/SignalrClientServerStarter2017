@@ -42,7 +42,11 @@ namespace MonoGameClient
     
         protected override void Initialize()
         {
-            serverConnection = new HubConnection("http://localhost:3566/"); //Port used
+
+            //
+            serverConnection = new HubConnection("http://s00162137pctestgameserver1.azurewebsites.net/");
+
+            // serverConnection = new HubConnection("http://localhost:3566/"); //Port used
             serverConnection.StateChanged += ServerConnection_StateChanged;
             proxy = serverConnection.CreateHubProxy("GameHub"); // creates proxy to enable us to call methods from gamehub
             connectionMessage = string.Empty;
